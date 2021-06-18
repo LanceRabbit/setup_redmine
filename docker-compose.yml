@@ -2,6 +2,20 @@ version: '3.8'
 
 services:
 
+  nginx:
+    build: ./nginx
+    restart: always
+    environment:
+      TZ: Asia/Taipei
+    hostname: nginx
+    networks:
+      - frontend
+    depends_on:
+      - redmine
+    ports:
+      - "80:80"
+      - "443:443"
+
   redmine:
     image: redmine:4.2.1
     container_name: myredmine
@@ -9,11 +23,13 @@ services:
     volumes:
       - ./data/redmine/files:/usr/src/redmine/files
       - ./data/redmine/plugins:/usr/src/redmine/plugins
-    ports:
-      - 8080:3000
+      - ./data/redmine/redmine-logs:/var/log/redmine/
     environment:
       REDMINE_DB_MYSQL: db
       REDMINE_DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - frontend
+      - backend
     depends_on:
       - db
 
@@ -26,6 +42,14 @@ services:
       - ./data/mysql:/var/lib/mysql
     ports:
       - 3306:3306
+    networks:
+      - backend
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
