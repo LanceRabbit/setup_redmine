@@ -23,10 +23,12 @@ services:
     volumes:
       - ./data/redmine/files:/usr/src/redmine/files
       - ./data/redmine/plugins:/usr/src/redmine/plugins
-      - ./data/redmine/redmine-logs:/var/log/redmine/
     environment:
-      REDMINE_DB_MYSQL: db
+      REDMINE_DB_POSTGRES: db
+      REDMINE_DB_PORT: 5432
+      REDMINE_DB_USERNAME: ${DB_USERNAME}
       REDMINE_DB_PASSWORD: ${DB_PASSWORD}
+      TZ: "Asia/Taipei"
     networks:
       - frontend
       - backend
@@ -34,19 +36,19 @@ services:
       - db
 
   db:
-    image: mysql:5.6
-    container_name: mysql56
-    command: --character-set-server=utf8 --collation-server=utf8_general_ci
+    image: postgres:13.3-alpine
+    container_name: postre13-3
+    user: postgres
     restart: always
     volumes:
-      - ./data/mysql:/var/lib/mysql
-    ports:
-      - 3306:3306
+      - ./data/redmine/postgre:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - backend
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: "Asia/Taipei"
 
 networks:
   frontend:
