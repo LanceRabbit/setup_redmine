@@ -28,12 +28,19 @@ services:
       REDMINE_DB_PORT: 5432
       REDMINE_DB_USERNAME: ${DB_USERNAME}
       REDMINE_DB_PASSWORD: ${DB_PASSWORD}
-      TZ: "Asia/Taipei"
+      TZ: Asia/Taipei
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: redmine.access
     networks:
       - frontend
       - backend
+      - logger
     depends_on:
       - db
+      - fluentd
 
   db:
     image: postgres:13.3-alpine
@@ -48,10 +55,55 @@ services:
     environment:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-      TZ: "Asia/Taipei"
+      TZ: Asia/Taipei
+
+  fluentd:
+    build: ./fluentd
+    container_name: fluentd_redmine
+    environment:
+      TZ: Asia/Taipei
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - logger
+      - log_service
+    depends_on:
+      - elasticsearch
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    container_name: elasticsearch_redmine
+    environment:
+      - "discovery.type=single-node"
+      - "TZ=Asia/Taipei"
+    expose:
+      - "9200"
+    ports:
+      - "9200:9200"
+    networks:
+      - log_service
+
+  kibana:
+    container_name: kibana_redmine
+    image: kibana:7.10.1
+    environment:
+      TZ: Asia/Taipei
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - log_service
 
 networks:
   frontend:
     driver: bridge
   backend:
+    driver: bridge
+  logger:
+    driver: bridge
+  log_service:
     driver: bridge
