@@ -28,6 +28,7 @@ services:
     volumes:
       - ./data/redmine/files:/usr/src/redmine/files
       - ./data/redmine/plugins:/usr/src/redmine/plugins
+    env_file: .env
     environment:
       REDMINE_DB_POSTGRES: db
       REDMINE_DB_PORT: 5432
@@ -50,7 +51,6 @@ services:
   db:
     image: postgres:13.3-alpine
     container_name: postre13-3
-    user: postgres
     restart: always
     volumes:
       - ./data/redmine/postgre:/var/lib/postgresql/data
@@ -65,6 +65,7 @@ services:
   fluentd:
     build: ./fluentd
     container_name: fluentd_redmine
+    restart: on-failure
     environment:
       TZ: Asia/Taipei
     volumes:
@@ -96,6 +97,7 @@ services:
   kibana:
     container_name: kibana_redmine
     image: kibana:7.10.1
+    restart: on-failure
     environment:
       TZ: Asia/Taipei
     depends_on:
