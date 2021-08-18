@@ -1,6 +1,38 @@
 # Redmine
 
-use docker-compose to combine redmine sql and nginx
+use docker-compose to combine redmine, postgres and nginx.
+
+## setup env
+
+```shell
+cp env.example .env
+```
+
+then filled below variables.
+
+```yml
+DB_USERNAME=
+DB_PASSWORD=
+SMTP_HOST=
+```
+
+### mail setting
+
+change the `/redmine/src/configuration.yml` if needed.
+
+```yml
+default:
+  email_delivery:
+    delivery_method: :smtp
+    smtp_settings:
+      address: 'smtp.office365.com'
+      port: '587'
+      domain: 'smtp.office365.com'
+      authentication: :login
+      user_name: 'yourmail@example.com'
+      password: 'yourpassword'
+      enable_starttls_auto: true
+```
 
 ## Redmine setup
 
@@ -21,9 +53,8 @@ RAILS_ENV=production REDMINE_LANG=zh-TW bundle exec rake redmine:load_default_da
   docker network inspect [container_id][container_name]
 ```
 
-```
+```shell
 # linux 確認 ip
-
 route -n
 
 ```
@@ -45,8 +76,8 @@ openssl x509 -req -days 365 -in redmine.csr -signkey redmine.key -out redmine.cr
 
 # 加強服務器安全性
 openssl dhparam -out dhparam.pem 2048
-
 ```
+
 ## Plugins
 
 先確認 `data/redmine/plugins` 路徑已經存在
